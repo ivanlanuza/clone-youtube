@@ -6,10 +6,10 @@ import Heading from "components/Heading";
 import LoadMore from "components/LoadMore";
 import { useState } from "react";
 import { amount } from "lib/config";
-import { useSession } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
-export default function Home({ initialVideos }) {
+export default function Subscriptions({ initialVideos }) {
   const [videos, setVideos] = useState(initialVideos);
   const [reachedEnd, setReachedEnd] = useState(initialVideos.length < amount);
   const { data: session, status } = useSession();
@@ -45,14 +45,17 @@ export default function Home({ initialVideos }) {
           videos={videos}
           setVideos={setVideos}
           setReachedEnd={setReachedEnd}
+          subscriptions={session.user.id}
         />
       )}
     </div>
   );
 }
 
-export async function getServerSideProps() {
-  let videos = await getVideos({}, prisma);
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  let videos = await getVideos({ subscriptions: session.user.id }, prisma);
   videos = JSON.parse(JSON.stringify(videos));
 
   return {
